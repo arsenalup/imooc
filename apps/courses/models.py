@@ -22,6 +22,9 @@ class Course(models.Model):
         verbose_name = '课程'
         verbose_name_plural = verbose_name
 
+    def __str__(self):
+        return self.name
+
 
 class Lesson(models.Model):
     course = models.ForeignKey(Course, verbose_name='课程')
@@ -48,7 +51,7 @@ class Video(models.Model):
 class CourseResource(models.Model):
     course = models.ForeignKey(Course, verbose_name='课程')
     name = models.CharField(max_length=100, verbose_name='名称')
-    doenload = models.FileField(upload_to='course/resource/%Y/%m', verbose_name='资源文件', max_length=100)
+    download = models.FileField(upload_to='course/resource/%Y/%m', verbose_name='资源文件', max_length=100)
     add_time = models.DateTimeField(default=datetime.now, verbose_name='添加时间')
 
     class Meta:
