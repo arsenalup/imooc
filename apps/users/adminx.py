@@ -8,8 +8,8 @@ class BaseSetting(object):
     use_bootswatch = True
 
 class GlobalSettings(object):
-    site_title = '慕学后台管理系统'
-    site_footer = '慕学在线网'
+    site_title = '网站后台管理系统'
+    site_footer = '教育在线网'
     menu_style = 'accordion'
 
 

@@ -30,6 +30,10 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
+AUTHENTICATION_BACKENDS = (
+    'users.views.CustomBackend',
+)
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -44,6 +48,7 @@ INSTALLED_APPS = [
     'operation',
     'xadmin',
     'crispy_forms',
+    'captcha',
 ]
 
 AUTH_USER_MODEL = 'users.UserProfile'
@@ -133,3 +138,10 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
 ]
+
+EMAIL_HOST = 'smtp.qq.com'
+EMAIL_PORT = 465
+EMAIL_HOST_USER = '676250063@qq.com'
+EMAIL_HOST_PASSWORD = 'jqoprbntpqbsbfjg'
+EMAIL_USE_SSL = 'True'
+EMAIL_FROM = '676250063@qq.com'
