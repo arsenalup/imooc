@@ -2,5 +2,5 @@
 基于Django的在线教育网站。
  - python 3.6
   - xadmin 
-  ![主页效果](https://ooo.0o0.ooo/2017/06/28/5953c76321aaa.png)
-  ![xadmin](https://ooo.0o0.ooo/2017/06/28/5953c9836bb7e.png)
+  ![主页效果](http://i2.kiimg.com/1949/7ad8c97bc81ba13f.png)
+  ![xadmin](http://i2.kiimg.com/1949/d883e30ab76700dc.png)
