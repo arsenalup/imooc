@@ -173,4 +173,29 @@ class  AddFavView(View):
                 return HttpResponse('{"status":"fail", "msg":"收藏出错"}', content_type='application/json')
 
 
+class TeacherListView(View):
+    """课程讲师列表页"""
+    def get(self, request):
+        all_teacher = Teacher.objects.all()
+
+        sort = request.GET.get('sort', '')
+        if sort:
+            if sort == 'hot':
+                all_teacher = all_teacher.order_by('-click_nums')
+
+        sorted_teachers = Teacher.objects.all().order_by('-click_nums')[:3]
+
+        #分页
+        try:
+            page = request.GET.get('page', 1)
+        except PageNotAnInteger:
+            page = 1
+        p = Paginator(all_teacher, 2, request=request)
+        teachers = p.page(page)
+        return  render(request, 'teachers-list.html', {
+            'all_teacher':teachers,
+            'sorted_teachers':sorted_teachers,
+            'sort':sort,
+        })
+
 
