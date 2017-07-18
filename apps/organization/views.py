@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.views.generic import View
 from pure_pagination import Paginator, EmptyPage, PageNotAnInteger
 from django.http import HttpResponse
+from django.db.models import Q
 # Create your views here.
 from .models import CourseOrg, CityDict, Teacher
 from .forms import UserAskForm
@@ -16,6 +17,12 @@ class OrgView(View):
         hot_orgs = all_orgs.order_by('-click_nums')[:3]
         #城市
         all_citys = CityDict.objects.all()
+
+        #搜索
+        search_keywords = request.GET.get('keywords', "")
+        if search_keywords:
+            all_orgs = all_orgs.filter(Q(name__icontains=search_keywords)|Q(desc__icontains=search_keywords))
+
 
         city_id = request.GET.get('city', '')
         if city_id:
@@ -178,6 +185,11 @@ class TeacherListView(View):
     def get(self, request):
         all_teacher = Teacher.objects.all()
 
+        #搜索
+        search_keywords = request.GET.get('keywords', "")
+        if search_keywords:
+            all_teacher = all_teacher.filter(Q(name__icontains=search_keywords)|Q(work_company__icontains=search_keywords)|Q(work_position__icontains=search_keywords))
+
         sort = request.GET.get('sort', '')
         if sort:
             if sort == 'hot':
@@ -196,6 +208,32 @@ class TeacherListView(View):
             'all_teacher':teachers,
             'sorted_teachers':sorted_teachers,
             'sort':sort,
+        })
+
+
+class TeacherDetailView(View):
+    def get(self, request, teacher_id):
+        teacher = Teacher.objects.get(id=int(teacher_id))
+        all_courses = Course.objects.filter(teacher=teacher)
+
+        has_teacher_faved = False
+        if  UserFavorite.objects.filter(user=request.user, fav_type=3, fav_id=teacher.id):
+            has_teacher_faved = Teacher
+        has_org_faved = False
+        if  UserFavorite.objects.filter(user=request.user, fav_type=2, fav_id=teacher.org.id):
+            has_org_faved = Teacher
+
+
+        #教师排行
+        sorted_teachers = Teacher.objects.all().order_by('-click_nums')[:3]
+
+        return  render(request, 'teacher-detail.html', {
+            'teacher':teacher,
+            'all_courses':all_courses,
+            'sorted_teachers':sorted_teachers,
+            'has_teacher_faved':has_teacher_faved,
+            'has_org_faved':has_org_faved,
+
         })
 
 
