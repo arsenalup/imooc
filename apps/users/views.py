@@ -1,18 +1,22 @@
 import json
 from django.shortcuts import render
-from  django.contrib.auth import authenticate, login
+from  django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.backends import ModelBackend
 from django.db.models import Q
 from django.views.generic.base import View
 from django.contrib.auth.hashers import make_password
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
+from pure_pagination import Paginator, EmptyPage, PageNotAnInteger
+from django.core.urlresolvers import reverse
 
-from  .models import UserProfile, EmailVerifyRecord
+from  .models import UserProfile, EmailVerifyRecord, Banner
 from .forms import LoginForm, RegisterForm, ForgetForm, ModifyPwdForm, UploadImageForm, UserInfoForm
 from  utils.email_send import send_register_email
 from utils.mixin_utils import LoginRequiredMixin
-from operation.models import UserCourse, UserFavorite
+from operation.models import UserCourse, UserFavorite, UserMessage
 from organization.models import CourseOrg, Teacher
+from courses.models import Course
+
 
 
 class CustomBackend(ModelBackend):
@@ -58,6 +62,11 @@ class RegisterView(View):
             user_profile.email = user_name
             user_profile.password = make_password(pass_word)
             user_profile.save()
+            #注册欢迎消息
+            user_message = UserMessage()
+            user_message.user = user_profile.id
+            user_message.message = "欢迎注册网站"
+            user_message.save()
             send_register_email(email=user_name, send_type='register')
             return render(request, 'login.html')
         else:
@@ -77,13 +86,21 @@ class LoginView(View):
             if user is not None:
                 if user.is_active:
                     login(request, user)
-                    return render(request, 'index.html')
+                    return HttpResponseRedirect(reverse('index'))
                 else:
                     return render(request, 'login.html', {'msg': '用户名密码未激活'})
             else:
                 return render(request, 'login.html', {'msg': '用户名密码错误'})
         else:
             return render(request, 'login.html', {'login_form':login_form})
+
+
+#用户登出
+class Logout(View):
+    def get(self, request):
+        logout(request)
+        return HttpResponseRedirect(reverse('index'))
+
 
 
 class ForgetPwdView(View):
@@ -241,5 +258,57 @@ class MyFavTeacherView(LoginRequiredMixin, View):
             teacher_list.append(teacher)
         return  render(request, 'usercenter-fav-teacher.html', {
             'teacher_list':teacher_list,
+        })
+
+
+class MyFavCourseView(LoginRequiredMixin, View):
+    """收藏的课程"""
+    def get(self, request):
+        course_list = []
+        fav_courses =UserFavorite.objects.filter(user=request.user, fav_type=1)
+        for fav_course in fav_courses:
+            course_id = fav_course.fav_id
+            course = Course.objects.get(id=course_id)
+            course_list.append(course)
+        return  render(request, 'usercenter-fav-course.html', {
+            'course_list':course_list,
+        })
+
+
+class MyMessageview(LoginRequiredMixin, View):
+    """我的消息"""
+    def get(self, request):
+        all_message = UserMessage.objects.filter(user=request.user.id)
+        #清空未读消息
+        all_unread_message = UserMessage.objects.filter(has_read=False, user= request.user.id)
+        for unread_message in all_unread_message:
+            unread_message.has_read =True
+            unread_message.save()
+
+        try:
+            page = request.GET.get('page', 1)
+        except PageNotAnInteger:
+            page = 1
+        p = Paginator(all_message, 3, request=request)
+        messages = p.page(page)
+
+        return render(request, 'usercenter-message.html', {
+            'messages':messages,
+        })
+
+
+#网站首页
+class IndexView(View):
+    def get(self, request):
+        #取出轮播图
+        all_banner = Banner.objects.all().order_by('index')[:3]
+        courses = Course.objects.filter(is_banner=False)[:6]
+        banner_courses = Banner.objects.all().order_by('index')[3:]
+        course_orgs = CourseOrg.objects.all()[:15]
+        return render(request, 'index.html', {
+            'all_banner':all_banner,
+            'courses':courses,
+            'banner_courses':banner_courses,
+            'course_orgs':course_orgs,
         })
 
