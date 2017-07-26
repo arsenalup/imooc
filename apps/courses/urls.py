@@ -10,6 +10,4 @@ urlpatterns = [
     url(r'^comment/(?P<course_id>\d+)/$', CommentsView.as_view(), name='course_comment'),
     url(r'^add_comment/$', AddComentsView.as_view(), name='add_comment'),
     url(r'^video/(?P<video_id>\d+)/$', VideoPlayView.as_view(), name='video_play'),
-
-
 ]
