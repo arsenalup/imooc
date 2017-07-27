@@ -1,5 +1,6 @@
 import xadmin
 from xadmin import views
+from xadmin.plugins.auth import UserAdmin
 
 from .models import EmailVerifyRecord, Banner
 
